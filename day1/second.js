@@ -21,10 +21,11 @@ class Puzzle1 {
     examineLine(line) {
         let first = this.getFirstNumber(line);
         let last = this.getLastNumber(line);
-        this.count += parseInt(first+last);
+        this.count += parseInt(first.toString()+last.toString());
+        console.log(line, first+last, this.count);
     }
 
-    replaceStrings(line){
+    replaceWrittenNumbers(line){
         const map = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'];
         let transformedLine = line;
         for(let i=0; i<map.length; i++){
@@ -43,7 +44,8 @@ class Puzzle1 {
         const data = await this.prepareData();
         for(let line of data) {
             if(line){
-                this.examineLine(this.replaceStrings(line));
+                let transformedLine = this.replaceWrittenNumbers(line);
+                this.examineLine(transformedLine);
             }
         }
         console.log(this.count);
