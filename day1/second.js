@@ -25,7 +25,7 @@ class Puzzle {
     }
  
     transformNumbers(line){
-        return this.transformLast(this.transformFirst(line));
+        return this.transformFirst(this.transformLast(line));
     }
 
     transformFirst(line){
@@ -60,5 +60,6 @@ class Puzzle {
     }
 }
 
-p = new Puzzle();
-p.run();
+const puzzle = new Puzzle();
+
+puzzle.run();

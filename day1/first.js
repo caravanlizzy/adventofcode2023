@@ -1,4 +1,4 @@
-class Puzzle1 {
+class Puzzle {
  
     constructor(){
         this.count = 0;
@@ -27,6 +27,7 @@ class Puzzle1 {
     async run() {
         const data = await this.getData();
         const dataArray = data.split('\n');
+	console.log(dataArray);
         for(let line of dataArray) {
             if(line){
                 this.examineLine(line);
@@ -35,3 +36,7 @@ class Puzzle1 {
         console.log(this.count);
     }
 }
+
+const puzzle = new Puzzle();
+
+puzzle.run();

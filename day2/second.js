@@ -84,5 +84,6 @@ class Puzzle {
 	}
 }
 
-p = new Puzzle();
-p.run();
+const puzzle = new Puzzle();
+
+puzzle.run();

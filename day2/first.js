@@ -1,4 +1,4 @@
-class Puzzle2 {
+class Puzzle {
 	constructor(){
 		this.limits = {
 			red: 12,
@@ -68,3 +68,7 @@ class Puzzle2 {
 		console.log(this.possibleIdCount);
 	}
 }
+
+const puzzle = new Puzzle();
+
+puzzle.run();
