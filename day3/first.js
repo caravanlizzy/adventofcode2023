@@ -1,118 +1,106 @@
-class Puzzle{
-	constructor(){
-		this.dataLines = 0;
-		this.lineLength = 0;
-		this.data = [];
-		this.count = 0;
-	}
+class Puzzle {
+  constructor() {
+    this.data = [];
+    this.count = 0;
+  }
 
+  async getData() {
+    const data = await fetch("https://adventofcode.com/2023/day/3/input");
+    return data.text();
+  }
 
-	async getData(){
-		const data = await fetch('https://adventofcode.com/2023/day/3/input');
-		return data.text();
-	}
+  async prepareData() {
+    const data = await this.getData();
+    this.data = data.split("\n");
+    this.data.pop();
+    // this.data = ['467..114..','...*......','..35..633.','......#...','617*......','.....+.58.','..592.....','......755.','...$.*....','.664.598..'];
+  }
 
-	async prepareData(){
-		const data = await this.getData();
-		this.data = data.split('\n');
-		this.data.pop();
-		this.dataLines = this.data.length;
-		this.lineLength = this.data[0].length;
-	}
+  test() {
+    this.validIndex(x, y);
+  }
 
-	findNumbers(line){
-		return line.match(/\d+/g);
-	}
+  findNumbers(line) {
+    return line.match(/\d+/g);
+  }
 
-	getNumberPosition(line, lineIndex, number){
-		return {line:lineIndex, index: line.indexOf(number), size:number.length};
-	}
+  removeNumber(lineIndex, number) {
+    this.data[lineIndex] = this.data[lineIndex].replace(
+      number,
+      ".".repeat(number.length)
+    );
+  }
 
-	isFirstLine(pos){
-		return pos.line === 0;
-	}
+  getNumberPosition(line, lineIndex, number) {
+    return {
+      line: lineIndex,
+      index: line.indexOf(number),
+      size: number.length,
+    };
+  }
 
-	isLastLine(pos){
-		console.log(pos.line, this.dataLines);
-		if(pos.line === this.dataLines-1){
-			console.log("this is the last line");
-		}
-		return pos.line === this.dataLines-1;
-	}
+  validIndex(x, y) {
+    if (x < 0) return false;
+    if (x > this.data[0].length - 1) return false;
+    if (y < 0) return false;
+    if (y > this.data.length - 1) return false;
+    return true;
+  }
 
-	isFirstItem(pos){
-		return pos.index === 0;
-	}
+  isNotSelf(x,y, pos){
+    if(y !== pos.line) return true;
+    if(x<pos.index) return true;
+    if(x>pos.index+pos.size-1)return true;
+    return false;
+  }
 
-	isLastItem(pos){
-		return pos.index + pos.size === this.lineLength;
-	}
+  getNeighbours(pos) {
+    let neighbours = [];
+    for (let y of [pos.line - 1, pos.line, pos.line + 1]) {
+      for (let x = pos.index - 1; x < pos.index + pos.size + 1; x++) {
+        if (this.validIndex(x, y) && this.isNotSelf(x,y, pos)) {
+          neighbours.push(this.data[y][x]);
+        }
+      }
+    }
+    return neighbours;
+  }
 
-	getAbove(pos){
-		if(this.isFirstLine(pos)) return [];
-		return [...this.data[pos.line-1].slice(pos.index, pos.index + pos.size)];
-	}
+  nextToSymbol(neighbours) {
+    let notASymbol = ".0123456789";
+    for (let n = 0; n < neighbours.length; n++) {
+      let neighbour = neighbours[n];
+      if (!notASymbol.includes(neighbour)) return true;
+    }
+    return false;
+  }
 
-	getBelow(pos){
-		if(this.isLastLine(pos)) return [];
-		return this.data[pos.line+1].slice(pos.index, pos.index + pos.size);
-	}
+  examineNumber(number, pos) {
+    const neighbours = this.getNeighbours(pos);
+    if (this.nextToSymbol(neighbours)) this.count += parseInt(number);
+    if(this.nextToSymbol(neighbours)) console.log(number);
+  }
 
-	getLeft(pos){
-		if(this.isFirstItem(pos)) return [];
-		let left = [this.data[pos.line][pos.index-1]];
-		if(!this.isFirstLine(pos)) left.push(this.data[pos.line-1][pos.index-1]);
-		if(!this.isLastLine(pos)) left.push(this.data[pos.line+1][pos.index-1]);
-		return left;
-	}
+  examineLine(line, lineIndex) {
+    let numbers = this.findNumbers(line);
+    if (!numbers) return;
+    for (let number of numbers) {
+      let pos = this.getNumberPosition(line, lineIndex, number);
+      this.examineNumber(number, pos);
+      // this.removeNumber(lineIndex, number);
+    }
+  }
 
-	getRight(pos){
-		if(this.isLastItem(pos)) return [];
-		let right = [this.data[pos.line][pos.index + pos.size]];
-		if(!this.isFirstLine(pos)) right.push(this.data[pos.line-1][pos.index + pos.size]);
-		if(!this.isLastLine(pos)) right.push(this.data[pos.line+1][pos.index + pos.size]);
-		return right;
-	}
-
-	getNeighbours(pos){
-		return [...this.getAbove(pos), ...this.getBelow(pos), ...this.getLeft(pos), ...this.getRight(pos)]
-	}
-
-	nextToSymbol(neighbours){
-		let notASymbol = '0123456789.';
-		console.log(neighbours);
-		for(let n = 0; n < neighbours.length; n++){
-			let neighbour = neighbours[n];
-			if(!notASymbol.includes(neighbour)) return true
-		}
-		return false;
-	}
-
-	examineNumber(number, pos){
-		const neighbours = this.getNeighbours(pos);
-		if(this.nextToSymbol(neighbours)) this.count += parseInt(number);
-	}
-
-
-	examineLine(line, lineIndex){
-		let numbers = this.findNumbers(line);
-		console.log(numbers);
-		for(let number of numbers){
-			let pos = this.getNumberPosition(line, lineIndex, number);
-			this.examineNumber(number, pos);
-		}
-	}
-
-	async run(){
-		await this.prepareData();
-		for(let lineIndex = 0; lineIndex < this.dataLines; lineIndex++){
-			let line = this.data[lineIndex];
-			if(line){
-				this.examineLine(line, lineIndex);
-			}
-		}
-		console.log(this.count);
-	}
+  async run() {
+    await this.prepareData();
+    for (let lineIndex = 0; lineIndex < this.data.length; lineIndex++) {
+      let line = this.data[lineIndex];
+      if (line) {
+        this.examineLine(line, lineIndex);
+      }
+    }
+    console.log(this.count);
+  }
 }
 
 const puzzle = new Puzzle();
