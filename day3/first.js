@@ -78,7 +78,6 @@ class Puzzle {
   examineNumber(number, pos) {
     const neighbours = this.getNeighbours(pos);
     if (this.nextToSymbol(neighbours)) this.count += parseInt(number);
-    if(this.nextToSymbol(neighbours)) console.log(number);
   }
 
   examineLine(line, lineIndex) {
@@ -87,7 +86,7 @@ class Puzzle {
     for (let number of numbers) {
       let pos = this.getNumberPosition(line, lineIndex, number);
       this.examineNumber(number, pos);
-      // this.removeNumber(lineIndex, number);
+      this.removeNumber(lineIndex, number);
     }
   }
 
@@ -97,7 +96,10 @@ class Puzzle {
       let line = this.data[lineIndex];
       if (line) {
         this.examineLine(line, lineIndex);
+      } else {
+        console.log('run failed in line: ' + line);
       }
+
     }
     console.log(this.count);
   }
