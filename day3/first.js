@@ -20,11 +20,8 @@ class Puzzle {
     return line.match(/\d+/g);
   }
 
-  removeNumber(lineIndex, number) {
-    this.data[lineIndex] = this.data[lineIndex].replace(
-      number,
-      ".".repeat(number.length)
-    );
+  removeNumber(line, number){
+    return line.replace(number, '.'.repeat(number.length));
   }
 
   getNumberPosition(line, lineIndex, number) {
@@ -79,10 +76,12 @@ class Puzzle {
   examineLine(line, lineIndex) {
     let numbers = this.findNumbers(line);
     if (!numbers) return;
+    let currentLine = line;
     for (let number of numbers) {
       let pos = this.getNumberPosition(line, lineIndex, number);
       this.examineNumber(number, pos);
-      this.removeNumber(lineIndex, number);
+      currentLine = this.removeNumber(currentLine, number);
+      console.log(currentLine);
     }
   }
 
