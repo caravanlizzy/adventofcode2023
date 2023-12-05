@@ -13,7 +13,6 @@ class Puzzle {
     const data = await this.getData();
     this.data = data.split("\n");
     this.data.pop();
-    // this.data = ['467..114..','...*......','..35..633.','......#...','617*......','.....+.58.','..592.....','......755.','...$.*....','.664.598..'];
   }
 
   findNumbers(line) {
@@ -78,10 +77,9 @@ class Puzzle {
     if (!numbers) return;
     let currentLine = line;
     for (let number of numbers) {
-      let pos = this.getNumberPosition(line, lineIndex, number);
+      let pos = this.getNumberPosition(currentLine, lineIndex, number);
       this.examineNumber(number, pos);
       currentLine = this.removeNumber(currentLine, number);
-      console.log(currentLine);
     }
   }
 
