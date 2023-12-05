@@ -2,7 +2,6 @@ class Puzzle {
   constructor() {
     this.data = [];
     this.count = 0;
-    this.symbols = [];
   }
 
   async getData() {
@@ -14,7 +13,6 @@ class Puzzle {
     const data = await this.getData();
     this.data = data.split("\n");
     this.data.pop();
-    // this.data = ['467..114..','...*......','..35..633.','......#...','617*......','.....+.58.','..592.....','......755.','...$.*....','.664.598..'];
   }
 
   findNumbers(line) {
@@ -53,40 +51,25 @@ class Puzzle {
     for (let y of [pos.line - 1, pos.line, pos.line + 1]) {
       for (let x = pos.index - 1; x < pos.index + pos.size + 1; x++) {
         if (this.validIndex(x, y) && this.isNotSelf(x,y, pos)) {
-          let neighbour = {symbol: this.data[y][x], position:[x,y]}
-          neighbours.push(neighbour);
+          neighbours.push(this.data[y][x]);
         }
       }
     }
     return neighbours;
   }
 
-  handleSymbol(symbol, number){
-    let existingSymbol = this.symbols.find(s => s.position[0] === symbol.position[0] && s.position[1] === symbol.position[1]);
-    console.log(symbol, number)
-    if(existingSymbol){
-      this.symbols[existingSymbol.index].adjacentNumbers.push(number);
-    } else {
-      let newSymbol = {...symbol, adjacentNumbers: [number], index: this.symbols.length};
-      this.symbols.push(newSymbol);
-    }
-  }
-
-  nextToSymbol(neighbours, number) {
-    let notASymbol = ".";
+  nextToSymbol(neighbours) {
+    let notASymbol = ".0123456789";
     for (let n = 0; n < neighbours.length; n++) {
       let neighbour = neighbours[n];
-      if (!notASymbol.includes(neighbour.symbol)) {
-        this.handleSymbol(neighbour, number);
-        return true;
-      }
+      if (!notASymbol.includes(neighbour)) return true;
     }
     return false;
   }
 
   examineNumber(number, pos) {
     const neighbours = this.getNeighbours(pos);
-    if (this.nextToSymbol(neighbours, number)) this.count += parseInt(number);
+    if (this.nextToSymbol(neighbours)) this.count += parseInt(number);
   }
 
   examineLine(line, lineIndex) {
@@ -100,14 +83,6 @@ class Puzzle {
     }
   }
 
-  getResult(){
-    let result = 0;
-    for(let symbol of this.symbols.filter(s => s.adjacentNumbers.length === 2)){
-      result += symbol.adjacentNumbers[0]*symbol.adjacentNumbers[1];
-    }
-    return result;
-  }
-
   async run() {
     await this.prepareData();
     for (let lineIndex = 0; lineIndex < this.data.length; lineIndex++) {
@@ -117,8 +92,9 @@ class Puzzle {
       } else {
         console.log('run failed in line: ' + line);
       }
-      console.log(this.getResult());
+
     }
+    console.log(this.count);
   }
 }
 
