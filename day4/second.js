@@ -1,4 +1,7 @@
 class Puzzle4{
+  constructor(){
+    this.distribution = [];
+  }
   async getData() {
     const data = await fetch("https://adventofcode.com/2023/day/4/input");
     let text = await data.text();
@@ -15,28 +18,45 @@ class Puzzle4{
     return line.split('|')[1].trim().split(' ').filter(e => e.trim() !== "").map(e => parseInt(e.trim()));
   }
 
-  score(winners, numbers){
+  getWins(winners, numbers){
     let count = 0;
     for(let winner of winners){
       if(numbers.includes(winner)){
         count += 1;
       }
     }
-    if(count === 0) return 0;
-    return 2**(count-1);
+    return count;
+  }
+
+  prepareDistribution(data){
+    for(let i in data){
+      this.distribution.push(1);
+    }
+  }
+
+  updateDistribution(wins, lineIndex){
+    for(let i = lineIndex + 1; i < lineIndex + wins + 1; i++){
+      this.distribution[i] += this.distribution[lineIndex];
+    }
+  }
+
+  sumUp(){
+    return this.distribution.reduce((acc, value) => acc + value, 0);
   }
 
   async run(){
     const data = await this.getData();
-    let score = 0;
-    for(let line of data){
-      if(line){
-        let winners = this.getWinnerNumbers((line));
-        let numbers = this.getNumbers(line);
-        score += this.score(winners, numbers);
+    this.prepareDistribution(data);
+    for(let lineIndex = 0; lineIndex < data.length; lineIndex++){
+      let content = data[lineIndex];
+      if(content){
+        let winners = this.getWinnerNumbers((content));
+        let numbers = this.getNumbers(content);
+        let wins = this.getWins(winners, numbers);
+        this.updateDistribution(wins, lineIndex);
       }
     }
-    console.log(score);
+    console.log(this.sumUp());
   }
 }
 
