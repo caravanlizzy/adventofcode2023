@@ -8,10 +8,6 @@ class Puzzle {
     return data;
   }
 
-  getNumber(s:string):number{
-    return s.split(' ').filter((e:string) => e.trim()!== '');
-  }
-
   getRaces(data: string):Race[]{
     let races: Race[] = [];
     let [_time, _distance] = data.split('\n');
