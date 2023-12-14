@@ -1,6 +1,8 @@
 import { getData } from '../getData';
 
 
+type Hand =  [number[], number];
+type Deck = Hand[];
 class Puzzle{
 
   async getData():Promise<any>{
@@ -10,7 +12,8 @@ class Puzzle{
   transformData(data:string):any[] {
     let rows = data.split('\n');
     let splitRows = rows.map((e:string) => e.split(' '));
-    return splitRows.map((e:string[]) => [e[0].split('').map((s:string) => this.cardToNumber(s)), parseInt(e[1])]);
+    console.log(splitRows.map((e:string[]) => e[0].split('').map((s:string) => this.cardToNumber(s)).sort((a,b) => a-b)));
+    return splitRows.map((e:string[]) => [e[0].split('').map((s:string) => this.cardToNumber(s)).sort((a,b) => a-b), parseInt(e[1])]);
   }
 
   getHandType(changes: number[]):number{
@@ -38,15 +41,17 @@ class Puzzle{
     const symbolChanges = this.detectSymbolChange(hand);
     return this.getHandType(symbolChanges);
   }
-sortHands<deck>(deck: deck[]):deck[]{
-    return deck.sort((a,b) => {
-     let typeA = this.determineHandType(a);
-     let typeB = this.determineHandType(b);
+sortHands(deck: Deck):Deck{
+  return deck.sort((a:Hand, b: Hand) => {
+      const handA = a[0];
+      const handB = b[0];
+     let typeA = this.determineHandType(handA);
+     let typeB = this.determineHandType(handB);
      if(typeA !== typeB) return typeB - typeA;
      else {
-       for (let index = 0; index < a.length; index++) {
-         if (a[index] !== b[index]) {
-           return b[index] - a[index];
+       for (let index = 0; index < handA.length; index++) {
+         if (handA[index] !== handB[index]) {
+           return handB[index] - handA[index];
          }
        }
      }
@@ -72,7 +77,7 @@ sortHands<deck>(deck: deck[]):deck[]{
 
   async run(){
     const data = await this.getData();
-    console.log( this.transformData(data) );
+//    console.log( this.transformData(data) );
   }
 }
 
