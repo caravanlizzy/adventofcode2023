@@ -1,61 +1,83 @@
 import { getData } from '../getData';
 
 
-type Hand =  [number[], number];
-type Deck = Hand[];
+type Hand = { cards: string, bid: number, value: number }
+
 class Puzzle{
 
   async getData():Promise<any>{
     return await getData(7);
   }
 
-  transformData(data:string):any[] {
-    let rows = data.split('\n');
-    let splitRows = rows.map((e:string) => e.split(' '));
-    console.log(splitRows.map((e:string[]) => e[0].split('').map((s:string) => this.cardToNumber(s)).sort((a,b) => a-b)));
-    return splitRows.map((e:string[]) => [e[0].split('').map((s:string) => this.cardToNumber(s)).sort((a,b) => a-b), parseInt(e[1])]);
+  toArrray(dataString: string):any[]{
+    return dataString.split('\n');
   }
 
-  getHandType(changes: number[]):number{
-    if(changes.length == 0) return 13;
-    if(changes.toString() == '4') return 12;
-    if(changes.toString() == '3') return 11;
-    if(changes.toString() == '3,4') return 10;
-    if(changes.toString() == '2,4') return 9;
-    if(changes.toString() == '2,3,4') return 8;
-    else return 8;
+  splitHandBid(rowString: string):string[]{
+    return rowString.split(' ');
   }
 
-  detectSymbolChange(hand:number[]):number[]{
-    let changes = [];
-    let previous = hand[0];
+  sortString(hand:string):string{
+    return hand.split('').sort().join('');
+  }
+
+  sortStringReverse(hand:string):string{
+    return hand.split('').sort().reverse().join('');
+  }
+
+  getChanges(hand:string):string{
+    let changes = '';
+    let counter = 1;
     for(let i = 1; i < hand.length; i++){
-      if(hand[i] == previous) {
-        changes.push(i);
-        previous = hand[i];
+      if(hand[i] === hand[i-1]){
+        counter += 1;
+      } else{
+        counter + 1;
+        changes += counter;
       }
     }
-    return changes;
+    const reversed = this.sortStringReverse(hand);
+    console.log(reversed);
+    return reversed;
   }
-  determineHandType(hand: number[]):number{
-    const symbolChanges = this.detectSymbolChange(hand);
-    return this.getHandType(symbolChanges);
+
+  getHandValue(hand:string){
+    let value = 0;
+    let handType = this.getHandType(hand);
+    value += handType * 16**6;
+    let power = 5;
+    for(let i = 0; i < hand.length; i++){
+      value += this.cardToNumber(hand) * 16**power;
+    }
+    return value;
   }
-sortHands(deck: Deck):Deck{
-  return deck.sort((a:Hand, b: Hand) => {
-      const handA = a[0];
-      const handB = b[0];
-     let typeA = this.determineHandType(handA);
-     let typeB = this.determineHandType(handB);
-     if(typeA !== typeB) return typeB - typeA;
-     else {
-       for (let index = 0; index < handA.length; index++) {
-         if (handA[index] !== handB[index]) {
-           return handB[index] - handA[index];
-         }
-       }
-     }
-    })
+
+  getHandType(hand: string):number{
+    let changes = this.getChanges(hand);
+    if(changes == '5') return 13;
+    if(changes == '41') return 12;
+    if(changes == '32') return 11;
+    if(changes == '311') return 10;
+    if(changes == '221') return 9;
+    if(changes == '2111') return 8;
+    if(changes == '11111') return 7;
+    else{
+      console.log('Not in valid change range: '+ changes);
+      return 0;
+    }
+  }
+
+  createHandObject(hand:string):Hand{
+      let [cards, bid] = hand.split(' ');
+      return { cards: cards, bid: parseInt(bid), value: this.getHandValue(hand) }
+  } 
+
+  createHandList(data:string[]):Hand[]{
+    let hands:Hand[] = [];
+    for(let hand of data){
+      hands.push(this.createHandObject(hand));
+    }
+    return hands;
   }
 
   cardToNumber(card:string):number{
@@ -76,8 +98,11 @@ sortHands(deck: Deck):Deck{
   }
 
   async run(){
-    const data = await this.getData();
-//    console.log( this.transformData(data) );
+    const dataString = await this.getData();
+    const data = this.toArrray(dataString);
+    const hands = this.createHandList(data);
+    console.log(hands);
+    //    console.log( this.transformData(data) );
   }
 }
 
