@@ -28,17 +28,20 @@ class Puzzle{
   getSequence(cards:string):string{
     let sequence = '';
     let counter = 1;
+    let jokers = 0;
     const sortedCards = this.sortString(cards);
     for(let i = 1; i < cards.length; i++){
-      if(sortedCards[i] === sortedCards[i-1] || sortedCards[i] === 'J'){
-        counter += 1;
-      } else{
+      if(sortedCards[i] === 'J') jokers += 1;
+      else if(sortedCards[i] === sortedCards[i-1]) counter += 1; 
+      else {
         sequence += counter;
         counter = 1;
       }
     }
     sequence += counter;
-    return this.sortStringReverse(sequence);
+    let sortedSequence = this.sortStringReverse(sequence);
+    let withJoker = (parseInt(sortedSequence[0]) + jokers) + sortedSequence.slice(1);
+    return withJoker;
   }
 
   getHandValue(cards:string){
