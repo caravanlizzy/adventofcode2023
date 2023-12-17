@@ -25,23 +25,37 @@ class Puzzle{
     return str.split('').sort().reverse().join('');
   }
 
-  getSequence(cards:string):string{
+  removeSymbolOccurences(cards: string, symbol: string):string {
+    return cards.replaceAll(symbol, '');
+  }
+
+  getSymbolSequence(cards:string):string{
     let sequence = '';
     let counter = 1;
-    let jokers = 0;
-    const sortedCards = this.sortString(cards);
-    for(let i = 1; i < cards.length; i++){
-      if(sortedCards[i] === 'J') jokers += 1;
+    const sortedCards = this.sortString(this.removeSymbolOccurences(cards, 'J'));
+    for(let i = 1; i < sortedCards.length; i++){
       else if(sortedCards[i] === sortedCards[i-1]) counter += 1; 
       else {
         sequence += counter;
         counter = 1;
       }
     }
-    sequence += counter;
-    let sortedSequence = this.sortStringReverse(sequence);
-    let withJoker = (parseInt(sortedSequence[0]) + jokers) + sortedSequence.slice(1);
-    return withJoker;
+    sequence += sortedCards.length > 0 ? counter : '';
+    return this.sortStringReverse(sequence);
+  }
+
+  countJokers(cards:string):number{
+    return cards.split('J').length-1;
+  }
+
+  getSequence(cards: string):string {
+    let symbols = this.getSymbolSequence(cards);
+    let jokers = this.countJokers(cards);
+    if(cards === 'JJJJJ') console.log(jokers, symbols);
+    if(!symbols) return '5';
+    else{
+      return (parseInt(symbols[0])+jokers) + symbols.slice(1);
+    }
   }
 
   getHandValue(cards:string){
@@ -87,18 +101,18 @@ class Puzzle{
   }
 
   cardToNumber(card:string):number{
-    if(parseInt(card)) return parseInt(card) - 1;
+    if(parseInt(card)) return parseInt(card);
     switch(card){
       case 'T':
-        return 9;
+        return 10;
       case 'J':
-        return 0;
+        return 1;
       case 'Q':
-        return 11;
+        return 12;
       case 'K':
-        return 12
+        return 13
       case 'A':
-        return 13;
+        return 15;
     }
     console.log('warning: code shoul not reach this part since all cases are covered.')
     return -1;
