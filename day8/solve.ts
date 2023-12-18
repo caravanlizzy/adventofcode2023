@@ -3,13 +3,13 @@ import { getData } from '../getData';
 class Solver {
   start: string;
   stop: string;
-  map: string[][];
+  map: any;
   directions: string;
 
   constructor(){ 
     this.start = 'AAA';
     this.stop = 'ZZZ';
-    this.map = [];
+    this.map = {};
     this.directions = '';
   }
 
@@ -17,23 +17,30 @@ class Solver {
     return await getData(8);
   }
 
+  async prepareData(){
+    let data = await this.getData();
+    this.setMap(data);
+    this.setDirections(data);
+  }
+
   setMap(data:string):void {
     let split = data.split('\n');
     split.shift();
     split.shift();
     split.pop();
-    this.map = split.map((e:string) => [e.split('=')[0].trim(), e.split('=')[1].split(',')[0].trim().slice(1), e.split('=')[1].split(',')[1].trim().slice(0, 3)]);
+    const tempMap = split.map((e:string) => [e.split('=')[0].trim(), e.split('=')[1].split(',')[0].trim().slice(1), e.split('=')[1].split(',')[1].trim().slice(0, 3)]);
+    for(let i = 0; i < tempMap.length; i++){
+      const tempRow: string[] = tempMap[i];
+      this.map[tempRow[0]] = {L: tempRow[1], R: tempRow[2]};
+    }
   }
 
   setDirections(data:string): void {
     this.directions = data.split('\n')[0];
   }
 
-  findNext(current:string[], direction: string):string[] {
-    const dirIndex: number = direction === 'L' ? 1 : 2; 
-    const nextRow = this.map.find((e:string[]) => e[0] === current[dirIndex]);
-    const next = nextRow ? nextRow : ['shit'];
-    return next;
+  findNext(current:string, direction: string):string {
+    return this.map[current][direction];
   }
 
   getNextDirection(counter: number){
@@ -41,54 +48,53 @@ class Solver {
   }
 
   async runFirst() {
-    this.prepareData();
+    await this.prepareData();
     let counter = 0;
-    let position = this.map.find((e) => e[0] === 'AAA');
-    if(position){
-      while(position[0] !== this.stop){
-        const direction = this.getNextDirection(counter);
-        position = this.findNext(position, direction);
-        counter++;
-      }
-      console.log(counter);
+    let position = 'AAA';
+    while(position !== this.stop){
+      const direction = this.getNextDirection(counter);
+      position = this.findNext(position, direction);
+      counter++;
     }
+    console.log(counter);
   }
 
-  getMultiStarts(): string[][] {
-    return this.map.filter(row => row[0][2] === 'A');
+  getMultiStarts(): string[]{
+    let starts = [];
+    for(let key of Object.keys(this.map)){
+      if(key[2] === 'A') starts.push(key);
+    }
+    return starts;
   }
 
-  checkEnd(positions:string[][]){
+  checkEnd(positions:string[]){
     for(let i = 0; i < positions.length; i++) {
-      if(positions[i][2] !== 'Z') return false;
+      const position = positions[i];
+      if(this.map[position[2]] !== 'Z') return false;
     }
     return true;
   }
 
-  async test(){
-    this.prepareData();
-    console.log(this.findNext(['AAA', 'DXX', 'SVG'], 'L'));
-  }
-
-  prepareData(){
-    let data = await this.getData();
-    this.setMap(data);
-    this.setDirections(data);
+  multiNext(currentPositions: string[], direction: string): string[] {
+    let nextPos = [];
+      for(let i = 0; i < currentPositions.length; i++) {
+        const currentPosition = currentPositions[i];
+        const newPosition = this.findNext(currentPosition, direction);
+        nextPos.push(newPosition);
+      }
+    return nextPos;
   }
 
   async runSecond() {
-    this.prepareData();
-    let positions = this.getMultiStarts();
-    let counter = 0;
-    let end = false;
+    await this.prepareData();
+    let positions: string[] = this.getMultiStarts(); // setup initial positions
+    let counter = 0; // count iterations
+    let end = false; // is final state?
     console.log(positions);
     while(!end) {
-      for(let i = 0; i < positions.length; i++) {
-        const direction = this.getNextDirection(counter);
-        const currentPosition = positions[i];
-        const newPosition = this.findNext(currentPosition, direction)
-        positions[i] = newPosition;
-      }
+      const direction = this.getNextDirection(counter); // L or R
+      positions = this.multiNext(positions, direction); // execute map once on all positions simultaneously
+      console.log(positions);
       end = this.checkEnd(positions)
       counter++;
     }
