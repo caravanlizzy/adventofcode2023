@@ -41,9 +41,7 @@ class Solver {
   }
 
   async runFirst() {
-    let data = await this.getData();
-    this.setMap(data);
-    this.setDirections(data);
+    this.prepareData();
     let counter = 0;
     let position = this.map.find((e) => e[0] === 'AAA');
     if(position){
@@ -68,16 +66,18 @@ class Solver {
   }
 
   async test(){
-    let data = await this.getData();
-    this.setMap(data);
-    this.setDirections(data);
+    this.prepareData();
     console.log(this.findNext(['AAA', 'DXX', 'SVG'], 'L'));
   }
 
-  async runSecond() {
+  prepareData(){
     let data = await this.getData();
     this.setMap(data);
     this.setDirections(data);
+  }
+
+  async runSecond() {
+    this.prepareData();
     let positions = this.getMultiStarts();
     let counter = 0;
     let end = false;
