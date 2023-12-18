@@ -70,7 +70,7 @@ class Solver {
   checkEnd(positions:string[]){
     for(let i = 0; i < positions.length; i++) {
       const position = positions[i];
-      if(this.map[position[2]] !== 'Z') return false;
+      if(position[2] !== 'Z') return false;
     }
     return true;
   }
@@ -94,8 +94,7 @@ class Solver {
     while(!end) {
       const direction = this.getNextDirection(counter); // L or R
       positions = this.multiNext(positions, direction); // execute map once on all positions simultaneously
-      console.log(positions);
-      end = this.checkEnd(positions)
+      end = this.checkEnd(positions);
       counter++;
     }
     console.log(counter)
