@@ -1,15 +1,17 @@
 import { getData } from '../getData';
 
+type Replacements = { [key:string]: number};
+type MapElement = [number, number];
+type Position = number;
+
 class Solver {
-  start: string;
-  stop: string;
-  map: any;
+  map: MapElement[];
+  replacements: Replacements;
   directions: string;
 
   constructor(){ 
-    this.start = 'AAA';
-    this.stop = 'ZZZ';
-    this.map = {};
+    this.map = [];
+    this.replacements = {};
     this.directions = '';
   }
 
@@ -19,88 +21,100 @@ class Solver {
 
   async prepareData(){
     let data = await this.getData();
-    this.setMap(data);
+    const parsedData = this.parseData(data);
     this.setDirections(data);
+    this.setReplacementMap(parsedData);
+    this.setMap(parsedData);
   }
 
-  setMap(data:string):void {
+  parseData(data:string): string[][] {
     let split = data.split('\n');
     split.shift();
     split.shift();
     split.pop();
-    const tempMap = split.map((e:string) => [e.split('=')[0].trim(), e.split('=')[1].split(',')[0].trim().slice(1), e.split('=')[1].split(',')[1].trim().slice(0, 3)]);
-    for(let i = 0; i < tempMap.length; i++){
-      const tempRow: string[] = tempMap[i];
-      this.map[tempRow[0]] = {L: tempRow[1], R: tempRow[2]};
+    return split.map((e:string) => [e.split('=')[0].trim(), e.split('=')[1].split(',')[0].trim().slice(1), e.split('=')[1].split(',')[1].trim().slice(0, 3)]);
+  }
+
+  setMap(parsedData:string[][]):void {
+    for(let row of parsedData) {
+      let leftKey: string = row[1];
+      let rightKey: string = row[2];
+      this.map.push([this.replacements[leftKey], this.replacements[rightKey]]);
     }
   }
 
-  setDirections(data:string): void {
-    this.directions = data.split('\n')[0];
+  setReplacementMap(parsedData:string[][]): void {
+    for( let i = 0; i < parsedData.length; i++ ) {
+      this.replacements[parsedData[i][0]] = i;
+    }
   }
 
-  findNext(current:string, direction: string):string {
+  getPosition(id:string): number {
+    return this.replacements[id];
+  }
+
+  setDirections(data:string): void {
+    this.directions = data.split('\n')[0].trim();
+    this.directions = this.directions.replaceAll('L', '0');
+    this.directions = this.directions.replaceAll('R', '1');
+  }
+
+  findNext(current:Position, direction: number):Position {
     return this.map[current][direction];
   }
 
-  getNextDirection(counter: number){
-    return this.directions[counter%this.directions.length];
+  getDirection(counter: number): number {
+    return parseInt(this.directions[counter%this.directions.length]);
   }
 
   async runFirst() {
     await this.prepareData();
     let counter = 0;
-    let position = 'AAA';
-    while(position !== this.stop){
-      const direction = this.getNextDirection(counter);
+    let position = this.getPosition('AAA');
+    const final = this.getPosition('ZZZ');
+    while(position !== final){
+      const direction = this.getDirection(counter);
       position = this.findNext(position, direction);
       counter++;
     }
     console.log(counter);
   }
 
-  getMultiStarts(): string[]{
-    let starts = [];
-    for(let key of Object.keys(this.map)){
-      if(key[2] === 'A') starts.push(key);
+  getPositions(endsWith: string): number[]{
+    let positions = [];
+    for(let [key, pos] of Object.entries(this.replacements)){
+      if(key[2] === endsWith) positions.push(pos); 
     }
-    return starts;
+    return positions;
   }
 
-  checkEnd(positions:string[]){
-    for(let i = 0; i < positions.length; i++) {
-      const position = positions[i];
-      if(position[2] !== 'Z') return false;
+  checkDone(positions: Position[], finals: Position[]){
+    for(let i = 0; i < positions.length; i++){
+      if(!finals.includes(positions[i])) return false;
     }
     return true;
   }
 
-  multiNext(currentPositions: string[], direction: string): string[] {
-    let nextPos = [];
-      for(let i = 0; i < currentPositions.length; i++) {
-        const currentPosition = currentPositions[i];
-        const newPosition = this.findNext(currentPosition, direction);
-        nextPos.push(newPosition);
-      }
-    return nextPos;
+  findMultiNext(positions: Position[], direction: number): Position[]{
+    return positions.map((e: Position) => this.findNext(e, direction));
   }
 
-  async runSecond() {
+  async runSecond(){
     await this.prepareData();
-    let positions: string[] = this.getMultiStarts(); // setup initial positions
-    let counter = 0; // count iterations
-    let end = false; // is final state?
-    console.log(positions);
-    while(!end) {
-      const direction = this.getNextDirection(counter); // L or R
-      positions = this.multiNext(positions, direction); // execute map once on all positions simultaneously
-      end = this.checkEnd(positions);
+    let counter = 0;
+    let positions: Position[] = this.getPositions('A'); // initial positions
+    let finals: Position[] = this.getPositions('Z');
+    let done = false;
+    while(!done) {
+      const direction = this.getDirection(counter);
+      positions = this.findMultiNext(positions, direction);
       counter++;
+      done = this.checkDone(positions, finals);
     }
-    console.log(counter)
+    console.log(counter);
   }
 }
 
 const solver = new Solver();
-// solver.runFirst();
+solver.runFirst();
 solver.runSecond();
